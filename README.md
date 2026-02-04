@@ -59,6 +59,12 @@ Use the wrapper to stream rebuild output into the live log panel:
 sudo discourse-rebuild
 ```
 
+The wrapper auto-detects the Discourse root and the offline log directory. You can override:
+
+```bash
+sudo DISCOURSE_ROOT=/var/discourse LOG_DIR=/var/www/errorpages/logs discourse-rebuild
+```
+
 ## Notes
 
 - TLS is moved out of the Discourse container and into nginx on the host.
