@@ -45,6 +45,7 @@ The installer auto-detects `DISCOURSE_HOSTNAME` from `containers/app.yml`.
 - `USE_TCP_PROXY=1` or `FORCE_TCP=1` to use a TCP upstream instead of the unix socket (auto-enabled when SELinux is Enforcing).
 - `DISCOURSE_TCP_PORT=8008` to choose the local TCP port for the Discourse container.
 - `OFFLINE_HTTP_STATUS=502` to change the status code served for the offline page (set to `200` if Cloudflare replaces 502 pages).
+- `DISABLE_INNER_RATELIMIT=1` to comment out `templates/web.ratelimited.template.yml` if you see global rate-limit issues behind the proxy (configure rate limiting in the host nginx instead).
 
 If it cannot detect a certificate email, provide one:
 
@@ -79,7 +80,7 @@ sudo DISCOURSE_ROOT=/var/discourse LOG_DIR=/var/www/errorpages/logs discourse-re
 - If you previously used container-managed SSL, auto-renewal must be handled on the host.
 - The installer writes a dedicated nginx config (no default vhost overwrite) and reloads nginx on cert renewals.
 - If uploads fail or OAuth logins break after moving SSL, enable `force_https` in Discourse and update OAuth callback URLs to `https`.
-- If you run Cloudflare in front, it may show its own 502 page. Use `OFFLINE_HTTP_STATUS=200` or pause Cloudflare to display the offline page.
+- If you run Cloudflare (or tunnels) in front, it may show its own 502 page. Use `OFFLINE_HTTP_STATUS=200` or `OFFLINE_HTTP_STATUS=404`, or pause Cloudflare to display the offline page.
 - If SELinux is Enforcing, the installer switches to a TCP upstream and attempts to set required SELinux booleans/ports (ensure `setsebool` and `semanage` are available).
 - To test the offline page:
 

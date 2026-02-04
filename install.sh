@@ -20,6 +20,7 @@ WEB_DIR="${SCRIPT_DIR}/web"
 
 OFFLINE_HTTP_STATUS="${OFFLINE_HTTP_STATUS:-502}"
 DISCOURSE_TCP_PORT="${DISCOURSE_TCP_PORT:-8008}"
+DISABLE_INNER_RATELIMIT="${DISABLE_INNER_RATELIMIT:-}"
 
 if [[ ! -f "${TEMPLATE_DIR}/discourse_offline.html" ]]; then
   echo "Missing templates. Expected ${TEMPLATE_DIR}/discourse_offline.html" >&2
@@ -128,7 +129,7 @@ fi
 backup="${APP_YML}.bak.$(date +%Y%m%d%H%M%S)"
 cp -a "${APP_YML}" "${backup}"
 
-export USE_TCP_PROXY DISCOURSE_TCP_PORT
+export USE_TCP_PROXY DISCOURSE_TCP_PORT DISABLE_INNER_RATELIMIT
 
 python3 - <<PY
 import os
@@ -136,6 +137,7 @@ import re
 from pathlib import Path
 
 use_tcp = os.environ.get("USE_TCP_PROXY") == "1"
+disable_ratelimit = os.environ.get("DISABLE_INNER_RATELIMIT") == "1"
 tcp_port = os.environ.get("DISCOURSE_TCP_PORT", "8008")
 try:
     tcp_port_int = int(tcp_port)
@@ -202,6 +204,8 @@ for line in lines:
                     line = comment(line)
                 else:
                     line = uncomment(line)
+            if disable_ratelimit and "templates/web.ratelimited.template.yml" in line:
+                line = comment(line)
             if re.search(r"templates/web\.ssl\.template\.yml|templates/web\.letsencrypt\.ssl\.template\.yml", line):
                 line = comment(line)
 
@@ -452,7 +456,7 @@ server {
     proxy_set_header X-Forwarded-Proto https;
     proxy_set_header X-Real-IP \$remote_addr;
 
-    error_page 502 =${OFFLINE_HTTP_STATUS} /errorpages/discourse_offline.html;
+    error_page 502 503 504 =${OFFLINE_HTTP_STATUS} /errorpages/discourse_offline.html;
     proxy_intercept_errors on;
   }
 }
