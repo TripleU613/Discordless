@@ -420,7 +420,7 @@
       function addLine(line) {
         if (!logOutput) return;
         if (line && /\[rebuild\]|rebuild start/i.test(line)) {
-          resetLogs("Rebuild starting…");
+          resetLogs("Rebuild starting…", true);
         }
         const ts = parseLogTimestamp(line);
         if (ts !== null) {
@@ -455,7 +455,7 @@
         if (pollTimer) return;
         updateStatus("Polling logs…");
         if (!hasLines) {
-          resetLogs("Polling logs…");
+          resetLogs("Polling logs…", true);
         }
         const fetchLogs = async () => {
           if (!logOutput) return;
@@ -471,7 +471,7 @@
               return;
             }
             lastSnapshot = text;
-            resetLogs();
+            resetLogs(null, true);
             const lines = (text || "No logs yet.").split("\n");
             for (const line of lines) {
               const item = document.createElement("div");
@@ -485,7 +485,7 @@
             updateStatus(`Updated ${now.toLocaleTimeString()}`);
           } catch (error) {
             updateStatus(`Log fetch failed`);
-            resetLogs("Log stream unavailable. Waiting for Discourse to respond.");
+            resetLogs("Log stream unavailable. Waiting for Discourse to respond.", false);
           }
         };
 
@@ -502,13 +502,11 @@
         const stream = new EventSource(streamUrl);
         updateStatus("Connecting…");
         if (!hasLines) {
-          resetLogs("Connecting…");
+          resetLogs("Connecting…", false);
         }
 
         stream.onopen = () => {
-          if (!hasLines) {
-            resetLogs("Live logs starting…");
-          }
+          updateStatus("Streaming…");
         };
 
         stream.addEventListener("status", (event) => {
@@ -524,9 +522,7 @@
         };
 
         stream.onerror = () => {
-          updateStatus("Stream disconnected. Falling back…");
-          stream.close();
-          startPolling();
+          updateStatus("Reconnecting…");
         };
       }
 
