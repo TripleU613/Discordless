@@ -325,9 +325,15 @@
       const refreshMs = 2000;
       const maxLines = 2000;
       const flushDelay = 80;
+      const seenLimit = 3000;
       let pending = [];
       let flushTimer = null;
       let pollTimer = null;
+      let lastSnapshot = null;
+      let hasLines = false;
+      let lastTimestamp = null;
+      let seenQueue = [];
+      let seenSet = new Set();
       let lastLineAt = null;
       let lastStatusLine = null;
       let lastStatusAt = 0;
@@ -335,6 +341,33 @@
         if (logStatus) {
           logStatus.textContent = text;
         }
+      }
+
+      function parseLogTimestamp(line) {
+        const match = line.match(
+          /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(\.\d+)?Z\b/
+        );
+        if (!match) return null;
+        const base = Date.parse(`${match[1]}Z`);
+        if (Number.isNaN(base)) return null;
+        if (!match[2]) return base;
+        const fraction = match[2].slice(1);
+        const ms = parseInt(fraction.slice(0, 3).padEnd(3, "0"), 10) || 0;
+        return base + ms;
+      }
+
+      function rememberLine(line) {
+        if (!line) return true;
+        if (seenSet.has(line)) return false;
+        seenSet.add(line);
+        seenQueue.push(line);
+        while (seenQueue.length > seenLimit) {
+          const oldLine = seenQueue.shift();
+          if (oldLine) {
+            seenSet.delete(oldLine);
+          }
+        }
+        return true;
       }
 
       function scheduleFlush() {
@@ -360,7 +393,7 @@
         }, flushDelay);
       }
 
-      function resetLogs(message) {
+      function resetLogs(message, clearMemory = true) {
         if (!logOutput) return;
         pending = [];
         if (flushTimer) {
@@ -375,6 +408,13 @@
           logOutput.appendChild(item);
         }
         logOutput.scrollTop = logOutput.scrollHeight;
+        if (clearMemory) {
+          hasLines = false;
+          lastSnapshot = null;
+          lastTimestamp = null;
+          seenQueue = [];
+          seenSet = new Set();
+        }
       }
 
       function addLine(line) {
@@ -382,6 +422,19 @@
         if (line && /\[rebuild\]|rebuild start/i.test(line)) {
           resetLogs("Rebuild starting…");
         }
+        const ts = parseLogTimestamp(line);
+        if (ts !== null) {
+          if (lastTimestamp !== null && ts + 1000 < lastTimestamp) {
+            return;
+          }
+          if (lastTimestamp === null || ts > lastTimestamp) {
+            lastTimestamp = ts;
+          }
+        }
+        if (!rememberLine(line)) {
+          return;
+        }
+        hasLines = true;
         pending.push(line);
         lastLineAt = new Date();
         updateStatus(`Streaming · ${lastLineAt.toLocaleTimeString()}`);
@@ -401,7 +454,9 @@
       function startPolling() {
         if (pollTimer) return;
         updateStatus("Polling logs…");
-        resetLogs("Polling logs…");
+        if (!hasLines) {
+          resetLogs("Polling logs…");
+        }
         const fetchLogs = async () => {
           if (!logOutput) return;
           try {
@@ -412,6 +467,10 @@
               throw new Error(`HTTP ${response.status}`);
             }
             const text = await response.text();
+            if (text === lastSnapshot) {
+              return;
+            }
+            lastSnapshot = text;
             resetLogs();
             const lines = (text || "No logs yet.").split("\n");
             for (const line of lines) {
@@ -421,6 +480,7 @@
               logOutput.appendChild(item);
             }
             logOutput.scrollTop = logOutput.scrollHeight;
+            hasLines = true;
             const now = new Date();
             updateStatus(`Updated ${now.toLocaleTimeString()}`);
           } catch (error) {
@@ -441,10 +501,14 @@
 
         const stream = new EventSource(streamUrl);
         updateStatus("Connecting…");
-        resetLogs("Connecting…");
+        if (!hasLines) {
+          resetLogs("Connecting…");
+        }
 
         stream.onopen = () => {
-          resetLogs("Live logs starting…");
+          if (!hasLines) {
+            resetLogs("Live logs starting…");
+          }
         };
 
         stream.addEventListener("status", (event) => {
