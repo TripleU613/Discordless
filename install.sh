@@ -187,6 +187,7 @@ install -m 0644 "${TEMPLATE_DIR}/discourse_offline.html" /var/www/errorpages/dis
 
 install -m 0755 "${TEMPLATE_DIR}/discourse-log-stream.py" /usr/local/bin/discourse-log-stream
 install -m 0755 "${TEMPLATE_DIR}/discourse-log-snapshot.py" /usr/local/bin/discourse-log-snapshot
+install -m 0755 "${TEMPLATE_DIR}/discourse-rebuild.sh" /usr/local/bin/discourse-rebuild
 install -m 0644 "${TEMPLATE_DIR}/discourse-log-stream.service" /etc/systemd/system/discourse-log-stream.service
 install -m 0644 "${TEMPLATE_DIR}/discourse-log-snapshot.service" /etc/systemd/system/discourse-log-snapshot.service
 install -m 0644 "${TEMPLATE_DIR}/discourse-log-snapshot.timer" /etc/systemd/system/discourse-log-snapshot.timer

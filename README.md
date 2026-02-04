@@ -51,6 +51,14 @@ If you accept the Let’s Encrypt “no email” option (not recommended):
 sudo ALLOW_UNSAFE_EMAIL=1 ./install.sh
 ```
 
+## Rebuild With Live Logs
+
+Use the wrapper to stream rebuild output into the live log panel:
+
+```bash
+sudo discourse-rebuild
+```
+
 ## Notes
 
 - TLS is moved out of the Discourse container and into nginx on the host.
@@ -83,4 +91,3 @@ cd /var/discourse
 - Log snapshot: `/var/www/errorpages/logs/discourse.log`
 - Log stream: `http://127.0.0.1:9123/stream` (nginx proxy)
 - Socket: `/var/discourse/shared/standalone/nginx.http.sock`
-
