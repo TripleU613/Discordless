@@ -1,0 +1,17 @@
+[Unit]
+Description=Stream sanitized Discourse logs (SSE)
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/discourse-log-stream
+Restart=always
+RestartSec=2
+Environment=DISCOURSE_CONTAINER=app
+Environment=MAX_LINES=2000
+Environment=LISTEN_HOST=127.0.0.1
+Environment=LISTEN_PORT=9123
+
+[Install]
+WantedBy=multi-user.target

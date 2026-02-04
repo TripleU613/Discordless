@@ -1,0 +1,8 @@
+[Unit]
+Description=Update sanitized Discourse logs
+After=docker.service
+Wants=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/discourse-log-snapshot
