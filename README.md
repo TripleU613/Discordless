@@ -39,6 +39,13 @@ sudo ./install.sh
 
 The installer auto-detects `DISCOURSE_HOSTNAME` from `containers/app.yml`.
 
+## Install Options
+
+- `NGINX_CONF=/etc/nginx/sites-available/discourse-offline.conf` to override the nginx config path (required if nginx does not include `sites-enabled` or `conf.d` in `nginx.conf`).
+- `USE_TCP_PROXY=1` or `FORCE_TCP=1` to use a TCP upstream instead of the unix socket (auto-enabled when SELinux is Enforcing).
+- `DISCOURSE_TCP_PORT=8008` to choose the local TCP port for the Discourse container.
+- `OFFLINE_HTTP_STATUS=502` to change the status code served for the offline page (set to `200` if Cloudflare replaces 502 pages).
+
 If it cannot detect a certificate email, provide one:
 
 ```bash
@@ -70,6 +77,10 @@ sudo DISCOURSE_ROOT=/var/discourse LOG_DIR=/var/www/errorpages/logs discourse-re
 - TLS is moved out of the Discourse container and into nginx on the host.
 - Let’s Encrypt has rate limits (avoid repeated installs in a short window).
 - If you previously used container-managed SSL, auto-renewal must be handled on the host.
+- The installer writes a dedicated nginx config (no default vhost overwrite) and reloads nginx on cert renewals.
+- If uploads fail or OAuth logins break after moving SSL, enable `force_https` in Discourse and update OAuth callback URLs to `https`.
+- If you run Cloudflare in front, it may show its own 502 page. Use `OFFLINE_HTTP_STATUS=200` or pause Cloudflare to display the offline page.
+- If SELinux is Enforcing, the installer switches to a TCP upstream and attempts to set required SELinux booleans/ports (ensure `setsebool` and `semanage` are available).
 - To test the offline page:
 
 ```bash
@@ -97,3 +108,4 @@ cd /var/discourse
 - Log snapshot: `/var/www/errorpages/logs/discourse.log`
 - Log stream: `http://127.0.0.1:9123/stream` (nginx proxy)
 - Socket: `/var/discourse/shared/standalone/nginx.http.sock`
+- TCP upstream (SELinux/TCP mode): `127.0.0.1:8008`
