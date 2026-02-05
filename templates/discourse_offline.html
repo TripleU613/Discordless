@@ -130,6 +130,29 @@
       text-transform: uppercase;
       color: var(--muted);
     }
+    .mobile-info {
+      display: none;
+      width: 100%;
+      margin-top: 8px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(15, 23, 42, 0.6);
+      text-align: left;
+      gap: 8px;
+    }
+    .mobile-info__item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+    .mobile-info__value {
+      color: var(--text);
+      font-weight: 600;
+    }
     .panel-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -243,41 +266,27 @@
       100% { transform: translateX(140%); opacity: 0.1; }
     }
     @media (max-width: 900px) {
-      body { padding: 18px; }
+      body { padding: 18px; align-items: flex-start; }
       .wrap { gap: 16px; }
-      .panel-row { grid-template-columns: 1fr; grid-template-areas: "game" "logs"; }
-      .game { padding: 14px; }
-      .game-shell { height: clamp(260px, 55vh, 420px); }
-      .log-output { height: clamp(220px, 45vh, 360px); }
-      .card { padding: 24px 22px; }
+      .panel-row { display: none; }
+      .card { padding: 22px 20px; }
+      .progress { width: 100%; }
+      .mobile-info { display: grid; }
     }
     @media (max-width: 720px) {
       .card { padding: 18px 18px; }
       h1 { font-size: 22px; }
       p { font-size: 14px; line-height: 1.45; }
-      .progress { width: min(420px, 92%); }
       .progress-label { letter-spacing: 0.12em; }
-      .game-shell {
-        height: auto;
-        aspect-ratio: 11 / 6;
-        min-height: 230px;
-      }
-      .log-output { height: clamp(180px, 32vh, 260px); }
     }
     @media (max-width: 600px) {
       body { padding: 14px; }
-      .card { padding: 20px 18px; }
+      .card { padding: 18px 16px; }
       h1 { font-size: 22px; }
       p { font-size: 14px; }
-      .game-title { font-size: 15px; }
-      .game-note { font-size: 12px; }
-      .game-shell { height: clamp(260px, 58vh, 440px); }
-      .log-output { height: clamp(210px, 42vh, 320px); }
     }
     @media (max-height: 680px) {
-      .card { padding: 18px 16px; }
-      .game-shell { height: clamp(220px, 52vh, 360px); }
-      .log-output { height: clamp(200px, 40vh, 300px); }
+      .card { padding: 16px 14px; }
     }
   </style>
 </head>
@@ -288,6 +297,16 @@
         <div class="status"><span class="dot"></span>Rebuilding</div>
         <h1>Forums Temporarily Offline</h1>
         <p>We are rebuilding or starting up the Discourse container. This page will refresh automatically every 2 minutes and return you to the forums as soon as they are available.</p>
+        <div class="mobile-info" aria-hidden="true">
+          <div class="mobile-info__item">
+            <span>Auto refresh</span>
+            <span class="mobile-info__value">Every 2 minutes</span>
+          </div>
+          <div class="mobile-info__item">
+            <span>Status</span>
+            <span class="mobile-info__value">Rebuilding</span>
+          </div>
+        </div>
         <div class="progress" aria-hidden="true">
           <div class="progress-bar"></div>
         </div>
