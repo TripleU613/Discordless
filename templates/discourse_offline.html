@@ -16,13 +16,17 @@
       --terminal-text: #7dd3fc;
       --terminal-accent: #60a5fa;
       --terminal-bg: #0b1323;
+      --glow-x: 20%;
+      --glow-y: 10%;
+      --glow-x2: 90%;
+      --glow-y2: 80%;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
       min-height: 100vh;
-      background: radial-gradient(1200px 600px at 20% 10%, rgba(56, 189, 248, 0.15), transparent 60%),
-                  radial-gradient(800px 400px at 90% 80%, rgba(59, 130, 246, 0.2), transparent 65%),
+      background: radial-gradient(1200px 600px at var(--glow-x) var(--glow-y), rgba(56, 189, 248, 0.15), transparent 60%),
+                  radial-gradient(800px 400px at var(--glow-x2) var(--glow-y2), rgba(59, 130, 246, 0.2), transparent 65%),
                   var(--bg);
       color: var(--text);
       display: flex;
@@ -644,6 +648,68 @@
       }
 
       startStream();
+    })();
+  </script>
+  <script>
+    (() => {
+      if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+      }
+
+      const root = document.documentElement;
+      const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+      const state = {
+        currentX: 20,
+        currentY: 10,
+        targetX: 20,
+        targetY: 10,
+        velocity: 0.06,
+      };
+
+      function setTargets(x, y) {
+        state.targetX = clamp(x, 0, 100);
+        state.targetY = clamp(y, 0, 100);
+      }
+
+      function onPointerMove(event) {
+        const x = (event.clientX / window.innerWidth) * 100;
+        const y = (event.clientY / window.innerHeight) * 100;
+        setTargets(x, y);
+      }
+
+      function onTouchMove(event) {
+        if (!event.touches || !event.touches.length) return;
+        const touch = event.touches[0];
+        const x = (touch.clientX / window.innerWidth) * 100;
+        const y = (touch.clientY / window.innerHeight) * 100;
+        setTargets(x, y);
+      }
+
+      function onKeyDown(event) {
+        const step = event.shiftKey ? 6 : 3;
+        if (event.key === "ArrowUp") setTargets(state.targetX, state.targetY - step);
+        if (event.key === "ArrowDown") setTargets(state.targetX, state.targetY + step);
+        if (event.key === "ArrowLeft") setTargets(state.targetX - step, state.targetY);
+        if (event.key === "ArrowRight") setTargets(state.targetX + step, state.targetY);
+      }
+
+      function tick() {
+        state.currentX += (state.targetX - state.currentX) * state.velocity;
+        state.currentY += (state.targetY - state.currentY) * state.velocity;
+
+        root.style.setProperty("--glow-x", `${state.currentX}%`);
+        root.style.setProperty("--glow-y", `${state.currentY}%`);
+        root.style.setProperty("--glow-x2", `${100 - state.currentX}%`);
+        root.style.setProperty("--glow-y2", `${100 - state.currentY}%`);
+
+        requestAnimationFrame(tick);
+      }
+
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+      window.addEventListener("touchmove", onTouchMove, { passive: true });
+      window.addEventListener("keydown", onKeyDown);
+
+      tick();
     })();
   </script>
 </body>
