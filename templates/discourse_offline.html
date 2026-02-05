@@ -266,10 +266,10 @@
       100% { transform: translateX(140%); opacity: 0.1; }
     }
     @media (max-width: 900px) {
-      body { padding: 18px; align-items: flex-start; }
-      .wrap { gap: 16px; }
+      body { padding: 16px; align-items: stretch; }
+      .wrap { gap: 16px; width: 100%; max-width: 520px; margin: 0 auto; }
       .panel-row { display: none; }
-      .card { padding: 22px 20px; }
+      .card { padding: 22px 20px; width: 100%; }
       .progress { width: 100%; }
       .mobile-info { display: grid; }
     }
@@ -280,7 +280,8 @@
       .progress-label { letter-spacing: 0.12em; }
     }
     @media (max-width: 600px) {
-      body { padding: 14px; }
+      body { padding: 12px; }
+      .wrap { max-width: 100%; }
       .card { padding: 18px 16px; }
       h1 { font-size: 22px; }
       p { font-size: 14px; }
